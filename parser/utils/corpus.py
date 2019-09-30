@@ -18,7 +18,7 @@ class Corpus(object):
     @property
     def num_sentences(self):
         return len(self.passages)
-    
+
     @property
     def lang(self):
         return self.language
@@ -50,6 +50,7 @@ class Corpus(object):
             subword_masks.append(mask)
             token_starts_masks.append(token_starts)
 
+            # TODO: Understand difference here. Maybe it's because how the span selector works
             _word_idxs = vocab.word2id([vocab.START] + instance.words + [vocab.STOP])
             _pos_idxs = vocab.pos2id([vocab.START] + instance.pos + [vocab.STOP])
             _dep_idxs = vocab.dep2id([vocab.START] + instance.dep + [vocab.STOP])
@@ -97,7 +98,7 @@ class Corpus(object):
             all_nodes,
             all_remote,
         )
-        
+
     def filter(self, max_len, vocab):
         passages, instances = [], []
         for p, i in zip(self.passages, self.instances):

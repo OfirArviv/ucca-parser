@@ -34,6 +34,7 @@ class LSTM_Encoder(nn.Module):
         self.bert_encoder = Bert_Embedding(bert_path, bert_layer, bert_dim)
         self.vocab = vocab
         self.lang_embedding = nn.Embedding(vocab.num_lang, lang_dim)
+        # TODO: Word embeddings beside BERT
         self.word_embedding = nn.Embedding(vocab.num_word, word_dim, padding_idx=0)
 
         self.pos_embedding = nn.Embedding(vocab.num_pos, pos_dim, padding_idx=0)
@@ -86,6 +87,7 @@ class LSTM_Encoder(nn.Module):
         emb = emb[sorted_idx]
         lstm_input = pack_padded_sequence(emb, sorted_lens, batch_first=True)
 
+        # TODO: Maybe the padding is different?
         r_out, _ = self.lstm(lstm_input, None)
         lstm_out, _ = pad_packed_sequence(r_out, batch_first=True)
 

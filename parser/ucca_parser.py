@@ -19,6 +19,7 @@ class UCCA_Parser(torch.nn.Module):
         
         self.shared_encoder = LSTM_Encoder(
             bert_path=args.bert_path,
+            # TODO: Only use [8,12]
             bert_layer=args.bert_layer,
             bert_dim=args.bert_dim,
             vocab=vocab,
