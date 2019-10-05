@@ -29,6 +29,8 @@
         "epoch": 100, 
         "patience": 10, 
         "lr": 0.001,
-        "optimizer": "adam"
+        "optimizer": "adam",
+
+        "disable_remote": true
     }
 }

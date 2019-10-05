@@ -16,6 +16,7 @@ class UCCA_Parser(torch.nn.Module):
         super(UCCA_Parser, self).__init__()
         self.vocab = vocab
         self.type = args.type
+        self.disable_remote = args.disable_remote
         
         self.shared_encoder = LSTM_Encoder(
             bert_path=args.bert_path,
@@ -72,13 +73,16 @@ class UCCA_Parser(torch.nn.Module):
 
         if self.training:
             span_loss = self.span_parser.get_loss(spans, sen_lens, trees)
-            # remote_loss = self.remote_parser.get_loss(spans, sen_lens, all_nodes, all_remote)
-            remote_loss = 0
+            if self.disable_remote:
+                remote_loss = self.remote_parser.get_loss(spans, sen_lens, all_nodes, all_remote)
+            else:
+                remote_loss = 0
             return span_loss, remote_loss
         else:
             predict_trees = self.span_parser.predict(spans, sen_lens)
             predict_passages = [to_UCCA(passage, pred_tree) for passage, pred_tree in zip(passages, predict_trees)]
-            # predict_passages = self.remote_parser.restore_remote(predict_passages, spans, sen_lens)
+            if not self.disable_remote:
+                predict_passages = self.remote_parser.restore_remote(predict_passages, spans, sen_lens)
             return predict_passages
 
     @classmethod
