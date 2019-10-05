@@ -1,12 +1,12 @@
-from parser.module import Feedforward
+from ucca_parser.module import Feedforward
 
 import torch
 import torch.nn as nn
 from ucca.layer0 import Terminal
 
-from parser.convert import to_UCCA
-from parser.convert import InternalParseNode, LeafParseNode
-from parser.convert import get_position
+from ucca_parser.convert import to_UCCA
+from ucca_parser.convert import InternalParseNode, LeafParseNode
+from ucca_parser.convert import get_position
 
 
 class Chart_Span_Parser(nn.Module):

@@ -1,6 +1,6 @@
 import argparse
 import os
-from parser.cmds import Train, Predict, Evaluate
+from ucca_parser.cmds import Train, Predict, Evaluate
 
 import torch
 
@@ -17,7 +17,7 @@ if __name__ == '__main__':
     }
     for name, subcommand in subcommands.items():
         subparser = subcommand.add_subparser(name, subparsers)
-        subparser.add_argument("--gpu", default=-1, help="gpu id")
+        subparser.add_argument("--gpu", default="-1", help="gpu id")
         subparser.add_argument("--seed", type=int, default=1, help="random seed")
         subparser.add_argument("--threads", type=int, default=1, help="thread num")
     args = parser.parse_args()

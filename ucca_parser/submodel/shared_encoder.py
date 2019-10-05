@@ -8,7 +8,7 @@ from torch.nn.utils.rnn import (
     pad_packed_sequence,
 )
 
-from parser.module import CharLSTM, EncoderLayer, PositionEncoding, Bert_Embedding
+from ucca_parser.module import CharLSTM, EncoderLayer, PositionEncoding, Bert_Embedding
 
 
 class LSTM_Encoder(nn.Module):
@@ -31,7 +31,7 @@ class LSTM_Encoder(nn.Module):
         char_drop=0,
     ):
         super(LSTM_Encoder, self).__init__()
-        self.bert_encoder = Bert_Embedding(bert_path, bert_layer, bert_dim)
+        self.bert_encoder = Bert_Embedding("bert-base-multilingual-cased", bert_layer, bert_dim)
         self.vocab = vocab
         self.lang_embedding = nn.Embedding(vocab.num_lang, lang_dim)
         # TODO: Word embeddings beside BERT

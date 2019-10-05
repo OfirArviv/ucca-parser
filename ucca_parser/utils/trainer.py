@@ -23,7 +23,7 @@ class Trainer(object):
         self.parser = parser
         self.optimizer = optimizer
         self.evaluator = evaluator
-        self.save_path = os.path.join(path, "parser.pt")
+        self.save_path = os.path.join(path, "ucca_parser.pt")
         self.batch_size = batch_size
         self.epoch = epoch
         self.patience = patience
