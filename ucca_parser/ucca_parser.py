@@ -76,7 +76,7 @@ class UCCA_Parser(torch.nn.Module):
             if self.disable_remote:
                 remote_loss = self.remote_parser.get_loss(spans, sen_lens, all_nodes, all_remote)
             else:
-                remote_loss = 0
+                remote_loss = [0]
             return span_loss, remote_loss
         else:
             predict_trees = self.span_parser.predict(spans, sen_lens)
