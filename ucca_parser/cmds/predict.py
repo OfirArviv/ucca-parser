@@ -1,13 +1,13 @@
 import argparse
 import os
 import datetime
-from parser import UCCA_Parser
+from ucca_parser import UCCA_Parser
 
 import torch
 import torch.utils.data as Data
 from ucca.convert import passage2file
 
-from parser.utils import Corpus, collate_fn
+from ucca_parser.utils import Corpus, collate_fn
 
 
 @torch.no_grad()
@@ -63,10 +63,10 @@ class Predict(object):
         test = Corpus(args.test_path, args.language)
         print(test)
 
-        # reload parser
-        print("reloading parser...")
+        # reload ucca_parser
+        print("reloading ucca_parser...")
         vocab_path = os.path.join(args.save_path, "vocab.pt")
-        state_path = os.path.join(args.save_path, "parser.pt")
+        state_path = os.path.join(args.save_path, "ucca_parser.pt")
         config_path = os.path.join(args.save_path, "config.json")
         ucca_parser = UCCA_Parser.load(vocab_path, config_path, state_path)
 

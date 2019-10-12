@@ -2,7 +2,7 @@ import io
 import pickle
 from collections import Counter
 from itertools import chain
-from parser.convert import InternalParseNode
+from ucca_parser.convert import InternalParseNode
 
 import torch
 import torch.nn.init as init

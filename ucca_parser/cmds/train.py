@@ -1,12 +1,12 @@
 import argparse
 import json
 import os
-from parser import UCCA_Parser
+from ucca_parser import UCCA_Parser
 import torch.optim as optim
 import torch
 import torch.utils.data as Data
 
-from parser.utils import (
+from ucca_parser.utils import (
     Corpus,
     Trainer,
     Vocab,
@@ -71,7 +71,7 @@ class Train(object):
         vocab_path = os.path.join(args.save_path, "vocab.pt")
         torch.save(vocab, vocab_path)
 
-        # init parser
+        # init ucca_parser
         print("initializing model...")
         ucca_parser = UCCA_Parser(vocab, config.ucca)
         if torch.cuda.is_available():
@@ -111,12 +111,12 @@ class Train(object):
         )
         trainer.train(train_loader, dev_loader)
 
-        # reload parser
+        # reload ucca_parser
         del ucca_parser
         torch.cuda.empty_cache()
-        print("reloading the best parser for testing...")
+        print("reloading the best ucca_parser for testing...")
         vocab_path = os.path.join(args.save_path, "vocab.pt")
-        state_path = os.path.join(args.save_path, "parser.pt")
+        state_path = os.path.join(args.save_path, "ucca_parser.pt")
         config_path = os.path.join(args.save_path, "config.json")
         ucca_parser = UCCA_Parser.load(vocab_path, config_path, state_path)
 

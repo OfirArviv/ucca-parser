@@ -1,8 +1,8 @@
 import torch
 import torch.nn as nn
 
-from parser.module import MLP, Biaffine
-from parser.convert import get_position
+from ucca_parser.module import MLP, Biaffine
+from ucca_parser.convert import get_position
 from ucca.layer0 import Terminal
 
 

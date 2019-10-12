@@ -8,7 +8,7 @@ from torch.nn.utils.rnn import (
     pad_packed_sequence,
 )
 
-from parser.module import CharLSTM, EncoderLayer, PositionEncoding, Bert_Embedding
+from ucca_parser.module import CharLSTM, EncoderLayer, PositionEncoding, Bert_Embedding
 
 
 class LSTM_Encoder(nn.Module):
