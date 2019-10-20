@@ -11,7 +11,7 @@ class Bert_Embedding(nn.Module):
     def __init__(self, bert_path, bert_layer, bert_dim, freeze=True):
         super(Bert_Embedding, self).__init__()
         self.bert_layer = bert_layer
-        self.bert = BertModel.from_pretrained(bert_path)
+        self.bert = BertModel.from_pretrained("bert-base-multilingual-cased")
         self.scalar_mix = ScalarMix(bert_dim, bert_layer[-1] - bert_layer[0])
 
         if freeze:

@@ -84,7 +84,7 @@ class Vocab(object):
     def __init__(self, bert_vocab, corpus):
         self.bert_vocab = bert_vocab
         self.tokenizer = BertTokenizer.from_pretrained(
-            bert_vocab, do_lower_case=False
+            "bert-base-multilingual-cased", do_lower_case=False
         )
         language, word, pos, dep, ent, ent_iob, edge_label, parse_label = self.collect(corpus)
 
