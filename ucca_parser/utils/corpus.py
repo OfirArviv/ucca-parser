@@ -4,17 +4,43 @@ import torch
 
 from ucca.convert import to_text, xml2passage
 
+from ucca_parser.utils.instance_2 import Instance_2
 from .instance import Instance
 from .dataset import TensorDataSet
 
 
 class Corpus(object):
-    def __init__(self, dic_name=None, lang=None):
+    def __init__(self, dic_name=None, lang=None, projection_dic=None):
         self.dic_name = dic_name
         self.passages = self.read_passages(dic_name)
+        self.passages = [passage for passage in self.passages if
+                             passage.ID != "90000" and
+                             passage.ID != "82002" and
+                             passage.ID != "422002" and
+                             passage.ID != "423003" and
+                             passage.ID != "772001" and
+                             passage.ID != "776002" and
+                             passage.ID != "776005"]
         self.instances = [Instance(passage) for passage in self.passages]
         self.language = lang
 
+        if projection_dic:
+            self.projections = self.read_passages(projection_dic)
+            self.projections = [passage for passage in self.projections if
+                                     passage.ID != "90000" and
+                                     passage.ID != "82002" and
+                                     passage.ID != "422002" and
+                                     passage.ID != "423003" and
+                                     passage.ID != "772001" and
+                                     passage.ID != "776002" and
+                                     passage.ID != "776005"]
+            self.projection_instances = [Instance_2(passage) for passage in self.projections]
+
+            assert len(self.projection_instances) == len(self.instances)
+            for i in range(len(self.projection_instances)):
+                assert self.projection_instances[i].passage.ID == self.instances[i].passage.ID, f'{self.projection_instances[i].passage.ID} != {self.instances[i].passage.ID}'
+        else:
+            self.projection_instances=None
     @property
     def num_sentences(self):
         return len(self.passages)
@@ -33,6 +59,9 @@ class Corpus(object):
     def read_passages(path):
         passages = []
         for file in sorted(os.listdir(path)):
+            if "xml" not in file:
+                print(f'Skipping {file}. Not an xml file.')
+                continue
             file_path = os.path.join(path, file)
             if os.path.isdir(file_path):
                 print(file_path)
@@ -44,6 +73,7 @@ class Corpus(object):
         lang_idxs, word_idxs = [], []
         pos_idxs, dep_idxs, ent_idxs, ent_iob_idxs = [], [], [], []
         trees, all_nodes, all_remote = [], [], []
+        projection_instances_dummy = []
         for instance in self.instances:
             subword_ids, mask, token_starts = vocab.subword_tokenize_to_ids(instance.words)
             subword_idxs.append(subword_ids)
@@ -82,6 +112,10 @@ class Corpus(object):
                 all_nodes.append([])
                 all_remote.append([])
 
+            if self.projection_instances is None:
+                projection_instances_dummy.append([])
+
+
         return TensorDataSet(
             subword_idxs,
             subword_masks,
@@ -96,6 +130,7 @@ class Corpus(object):
             trees,
             all_nodes,
             all_remote,
+            self.projection_instances if self.projection_instances else projection_instances_dummy,
         )
         
     def filter(self, max_len, vocab):

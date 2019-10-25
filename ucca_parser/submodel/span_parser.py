@@ -1,3 +1,5 @@
+from allennlp.data.dataset_readers.dataset_utils import enumerate_spans
+
 from ucca_parser.module import Feedforward
 
 import torch
@@ -7,6 +9,7 @@ from ucca.layer0 import Terminal
 from ucca_parser.convert import to_UCCA
 from ucca_parser.convert import InternalParseNode, LeafParseNode
 from ucca_parser.convert import get_position
+import torch.nn.init as init
 
 
 class Chart_Span_Parser(nn.Module):
@@ -122,14 +125,39 @@ class Chart_Span_Parser(nn.Module):
 
 class Topdown_Span_Parser(nn.Module):
     def __init__(
-        self, vocab, lstm_dim, label_hidden_dim, split_hidden_dim, drop=0, norm=False
+        self, vocab, lstm_dim, label_hidden_dim, split_hidden_dim, drop=0, norm=False, use_projections=False
     ):
         super(Topdown_Span_Parser, self).__init__()
+        if use_projections:
+            label_dim = 20
+        else:
+            label_dim = 0
         self.vocab = vocab
-        self.label_ffn = Feedforward(lstm_dim, label_hidden_dim, vocab.num_parse_label, drop, norm)
-        self.split_ffn = Feedforward(lstm_dim, split_hidden_dim, 1, drop, norm)
+        self.label_ffn = Feedforward(lstm_dim + label_dim, label_hidden_dim, vocab.num_parse_label, drop, norm)
+        self.split_ffn = Feedforward(lstm_dim + label_dim, split_hidden_dim, 1, drop, norm)
 
-    def forward(self, span):
+        if use_projections:
+            self.label_embedding = nn.Embedding(len(self.vocab._parse_label)+1, label_dim)
+            init.normal_(self.label_embedding.weight)
+
+    def forward(self, span, sen_len, projection=None):
+        if projection:
+            span_list = enumerate_spans(list(range(sen_len)))
+            assert len(span_list) == span.shape[0]
+            i = 0
+            for left, right in span_list:
+                position = get_position(sen_len, left, right+1)
+                assert i == position
+                i = i + 1
+
+            label2embedd = lambda x: self.vocab.parse_label2id(x)+1 if x in self.vocab._parse_label else 0
+            projection_tree = projection.tree.convert()
+            projection_labels = [projection_tree.oracle_label(left, right+1) for left, right in span_list]
+            projection_labels = [label2embedd(label) for label in projection_labels]
+            projection_labels = torch.FloatTensor(projection_labels).long()
+            projection_labels = self.label_embedding(projection_labels)
+            span = torch.cat([projection_labels, span], dim=1)
+
         label_score = self.label_ffn(span)
         split_score = self.split_ffn(span).squeeze(-1)
         return label_score, split_score
@@ -196,20 +224,20 @@ class Topdown_Span_Parser(nn.Module):
             children = [InternalParseNode(label, children)]
         return children, loss
 
-    def get_loss(self, spans, sen_lens, trees):
+    def get_loss(self, spans, sen_lens, trees, projections=None):
         batch_loss = []
         for i, length in enumerate(sen_lens):
             span_num = (1 + length) * length // 2
-            label_score, split_score = self.forward(spans[i][:span_num])
+            label_score, split_score = self.forward(spans[i][:span_num], length, projections[i] if projections else None)
             _, loss = self.helper(label_score, split_score, length, 0, length, trees[i])
             batch_loss.append(loss)
         return batch_loss
 
-    def predict(self, spans, sen_lens):
+    def predict(self, spans, sen_lens, projections=None):
         pred_trees = []
         for i, length in enumerate(sen_lens):
             span_num = (1 + length) * length // 2
-            label_score, split_score = self.forward(spans[i][:span_num])
+            label_score, split_score = self.forward(spans[i][:span_num], length, projections[i] if projections else None)
             pred_tree, _ = self.helper(label_score, split_score, length, 0, length)
             pred_trees.append(pred_tree[0].convert())
         return pred_trees

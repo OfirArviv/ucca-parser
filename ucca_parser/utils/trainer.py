@@ -23,6 +23,7 @@ class Trainer(object):
         self.parser = parser
         self.optimizer = optimizer
         self.evaluator = evaluator
+        self.res_path = os.path.join(path, "model_dev.csv")
         self.save_path = os.path.join(path, "ucca_parser.pt")
         self.batch_size = batch_size
         self.epoch = epoch
@@ -33,7 +34,7 @@ class Trainer(object):
         self.optimizer.zero_grad()
         self.parser.zero_grad()
         span_losses, remote_losses = 0, 0
-        subword_idxs, subword_masks, token_starts_masks, lang_idxs, word_idxs, pos_idxs, dep_idxs, ent_idxs, ent_iob_idxs, passages, trees, all_nodes, all_remote = (
+        subword_idxs, subword_masks, token_starts_masks, lang_idxs, word_idxs, pos_idxs, dep_idxs, ent_idxs, ent_iob_idxs, passages, trees, all_nodes, all_remote, projections = (
             batch
         )
         batch_size = len(word_idxs)
@@ -62,6 +63,7 @@ class Trainer(object):
                     trees[i : i + 5],
                     all_nodes[i : i + 5],
                     all_remote[i : i + 5],
+                    projections[i : i + 5]
                 )
             else:
                 span_loss, remote_loss = self.parser.parse(
@@ -78,6 +80,7 @@ class Trainer(object):
                     trees[i : i + 5],
                     all_nodes[i : i + 5],
                     all_remote[i : i + 5],
+                    projections[i: i + 5]
                 ) 
             span_losses += sum(span_loss)
             remote_losses += sum(remote_loss)
@@ -113,7 +116,7 @@ class Trainer(object):
                     )
                 )
 
-            f = self.evaluator.compute_accuracy(dev)
+            f = self.evaluator.compute_accuracy(dev, self.res_path)
             if hasattr(self.optimizer, "schedule"):
                 self.optimizer.schedule(f)
                 

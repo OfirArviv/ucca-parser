@@ -1,9 +1,19 @@
-from ucca.core import edge_id_orderkey
+from ucca.core import edge_id_orderkey, Passage
 from ucca.layer0 import Terminal
 from ucca.layer1 import FoundationalNode, Layer1, NodeTags, PunctNode
 
 from .trees import InternalTreebankNode, LeafTreebankNode
+import matplotlib.pyplot as plt
+from ucca import visualization, layer0, core, layer1, evaluation, ioutil
 
+
+def visualize_passage(passage: Passage, title: str) -> None:
+    assert isinstance(passage, Passage)
+    width = len(passage.layer(layer0.LAYER_ID).all)
+    plt.figure(passage.ID, figsize=(width, width * 10 / 19))
+    plt.title(title, {'fontsize': 30})
+    visualization.draw(passage)
+    plt.show()
 
 def remove_implicit(passage):
     for _, node in passage.nodes.items():
@@ -142,7 +152,7 @@ def UCCA2tree(passage):
 
 def to_treebank(label, node):
     if len(node.outgoing) == 0:
-        return LeafTreebankNode(node.extra["pos"], node.text)
+        return LeafTreebankNode("pos", node.text)
     
     children = []
     for child in sorted(node.children, key=lambda x: x.get_terminals()[0].position):

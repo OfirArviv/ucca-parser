@@ -169,7 +169,7 @@ class Vocab(object):
                         nodes.extend(reversed(node.children))
         parse_label = sorted(set(parse_label))
 
-        return language, words, pos, dep, ent, ent_iob, edge_label, parse_label
+        return set(language), words, pos, dep, ent, ent_iob, edge_label, parse_label
 
     @property
     def PAD_index(self):
