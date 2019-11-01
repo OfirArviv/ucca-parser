@@ -31,6 +31,9 @@ def write_passages(dev_predicted, path):
         passage2file(passage, os.path.join(path, passage.ID + ".xml"))
 
 
+def get_dic_label_from_path(path):
+    return os.path.basename(path)
+
 class UCCA_Evaluator(object):
     def __init__(
         self, parser, gold_dic=None, pred_dic=None, save_path=None
@@ -45,12 +48,14 @@ class UCCA_Evaluator(object):
 
         self.dic_to_gold_dir_map = {}
         for idx, dic in enumerate(gold_dic):
-            self.dic_to_gold_dir_map[dic] = tempfile.TemporaryDirectory(prefix=f'ucca-eval-gold-{idx}-')
+            label = get_dic_label_from_path(dic)
+            self.dic_to_gold_dir_map[label] = tempfile.TemporaryDirectory(prefix=f'ucca-eval-gold-{idx}-')
 
         for dic in self.gold_dic:
             for file in sorted(os.listdir(dic)):
                 src_path = os.path.join(dic, file)
-                shutil.copy(src_path, self.dic_to_gold_dir_map[dic].name)
+                label = get_dic_label_from_path(dic)
+                shutil.copy(src_path, self.dic_to_gold_dir_map[label].name)
 
     @torch.no_grad()
     def predict(self, loader):
