@@ -21,22 +21,25 @@ class UccaScores():
         agg_score = Scores.aggregate(score_list)
         labeled_average_f1 = agg_score.average_f1(LABELED)
         unlabeled_average_f1 = agg_score.average_f1(UNLABELED)
-        metrics[f'labeled_average_F1'] = labeled_average_f1
-        metrics[f'unlabeled_average_F1'] = unlabeled_average_f1
+        metrics[f'labeled_f1'] = labeled_average_f1
+        metrics[f'unlabeled_f1'] = unlabeled_average_f1
         for dataset_label in self.scores:
-            dataset_prefix = f'{dataset_label}_'  # if len(self.scores.keys()) > 1 else ""
+            dataset_prefix = f'{dataset_label}_'
             agg_score = Scores.aggregate(self.scores[dataset_label])
+
             labeled_average_f1 = agg_score.average_f1(LABELED)
-            unlabeled_average_f1 = agg_score.average_f1(UNLABELED)
             metrics[f'{dataset_prefix}labeled_average_F1'] = labeled_average_f1
+            unlabeled_average_f1 = agg_score.average_f1(UNLABELED)
             metrics[f'{dataset_prefix}unlabeled_average_F1'] = unlabeled_average_f1
-            titles = agg_score.titles()
-            values = agg_score.fields()
-            for title, value in zip(titles, values):
-                metrics[f'{dataset_prefix}{title}'] = float(value)
+
+            for score_type in [LABELED, UNLABELED]:
+                titles = agg_score.titles(score_type)
+                values = agg_score.fields(score_type)
+                for title, value in zip(titles, values):
+                    metrics[f'{dataset_prefix}{title}'] = float(value)
         if reset:
             self.reset()
-        return metrics
+        return metrics, agg_score
 
     def reset(self):
         self.scores = {}
