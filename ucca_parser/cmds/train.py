@@ -46,9 +46,11 @@ class Train(object):
         vocab_path = os.path.join(args.save_path, "vocab.pt")
         state_path = os.path.join(args.save_path, "ucca_parser.pt")
         config_path = os.path.join(args.save_path, "config.json")
-        ucca_parser = UCCA_Parser.load(vocab_path, config_path, state_path)
+        ucca_parser, vocab = UCCA_Parser.load(vocab_path, config_path, state_path)
 
-        return ucca_parser
+        print(vocab)
+
+        return ucca_parser, vocab
 
     @staticmethod
     def existing_parser_exists(args):
@@ -104,15 +106,12 @@ class Train(object):
             print(f'{corpus}')
 
         if self.existing_parser_exists(args):
-            ucca_parser = self.load_parser(args)
+            ucca_parser, vocab = self.load_parser(args)
         else:
             # init vocab
             print("collecting words and labels in training dataset...")
             vocab = Vocab(config.ucca.bert_vocab, train_corpora)
             print(vocab)
-
-            for corpus in train_corpora:
-                corpus.filter(512, vocab)
 
             vocab_path = os.path.join(args.save_path, "vocab.pt")
             torch.save(vocab, vocab_path)
@@ -120,6 +119,9 @@ class Train(object):
             # init ucca_parser
             print("initializing model...")
             ucca_parser = UCCA_Parser(vocab, config.ucca)
+
+        for corpus in train_corpora:
+            corpus.filter(512, vocab)
 
         if torch.cuda.is_available():
             ucca_parser = ucca_parser.cuda()
@@ -144,8 +146,12 @@ class Train(object):
         optimizer = optim.Adam(ucca_parser.parameters(), lr=config.ucca.lr)
         ucca_evaluator = UCCA_Evaluator(
             parser=ucca_parser,
-            gold_dic=[args.en_dev_path, args.fr_dev_path, args.de_dev_path]
+            gold_dic=[args.en_dev_path, args.fr_dev_path, args.de_dev_path],
+            save_path=args.save_path
         )
+        if self.existing_parser_exists(args):
+            print("computing accuracy of the saved model for calibration...")
+            ucca_evaluator.compute_accuracy(dev_loader)
 
         trainer = Trainer(
             parser=ucca_parser,

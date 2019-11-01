@@ -160,7 +160,6 @@ class Vocab(object):
         parse_label = []
         for c in corpus:
             for instance in c.instances:
-                instance.tree = instance.tree.convert()
                 nodes = [instance.tree]
                 while nodes:
                     node = nodes.pop()

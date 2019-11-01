@@ -99,7 +99,7 @@ class UCCA_Parser(torch.nn.Module):
         network.load_state_dict(state)
         network.to(device)
 
-        return network
+        return network, vocab
 
     def save(self, fname):
         self.state_dict()

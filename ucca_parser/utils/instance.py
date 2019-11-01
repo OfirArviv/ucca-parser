@@ -19,7 +19,7 @@ class Instance(object):
         self.dep = list(dep)
         self.ent = list(ent_type)
         self.ent_iob = list(ent_iob)
-        self.tree = self.generate_tree()
+        self.tree = self.generate_tree().convert()
         self.remote = self.gerenate_remote()
 
     @property
