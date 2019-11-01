@@ -21,13 +21,13 @@ from ucca_parser.utils import (
 class Train(object):
     def add_subparser(self, name, parser):
         subparser = parser.add_parser(name, help="Train a model.")
-        subparser.add_argument("--en_train_path", required=True, help="en train data dir")
-        subparser.add_argument("--fr_train_path", required=True, help="fr train data dir")
-        subparser.add_argument("--de_train_path", required=True, help="de train data dir")
+        subparser.add_argument("--en_train_path", required=False, help="en train data dir")
+        subparser.add_argument("--fr_train_path", required=False, help="fr train data dir")
+        subparser.add_argument("--de_train_path", required=False, help="de train data dir")
 
-        subparser.add_argument("--en_dev_path", required=True, help="en dev data dir")
-        subparser.add_argument("--fr_dev_path", required=True, help="fr dev data dir")
-        subparser.add_argument("--de_dev_path", required=True, help="de dev data dir")
+        subparser.add_argument("--en_dev_path", required=False, help="en dev data dir")
+        subparser.add_argument("--fr_dev_path", required=False, help="fr dev data dir")
+        subparser.add_argument("--de_dev_path", required=False, help="de dev data dir")
 
         subparser.add_argument("--save_path", required=True, help="dic to save all file")
         subparser.add_argument("--config_path", required=True, help="init config file")
@@ -40,46 +40,93 @@ class Train(object):
 
         return subparser
 
+    @staticmethod
+    def load_parser(args):
+        print("reloading the best ucca_parser...")
+        vocab_path = os.path.join(args.save_path, "vocab.pt")
+        state_path = os.path.join(args.save_path, "ucca_parser.pt")
+        config_path = os.path.join(args.save_path, "config.json")
+        ucca_parser = UCCA_Parser.load(vocab_path, config_path, state_path)
+
+        return ucca_parser
+
+    @staticmethod
+    def existing_parser_exists(args):
+        vocab_path = os.path.join(args.save_path, "vocab.pt")
+        state_path = os.path.join(args.save_path, "ucca_parser.pt")
+        config_path = os.path.join(args.save_path, "config.json")
+        return os.path.isfile(vocab_path) and os.path.isfile(state_path) and os.path.isfile(config_path)
+
     def __call__(self, args):
+        assert all(path is None for path in [args.en_train_path, args.en_dev_path]) or \
+               all(path is not None for path in [args.en_train_path, args.en_dev_path])
+        assert all(path is None for path in [args.fr_train_path, args.fr_dev_path]) or \
+               all(path is not None for path in [args.fr_train_path, args.fr_dev_path])
+        assert all(path is None for path in [args.de_train_path, args.de_dev_path]) or \
+               all(path is not None for path in [args.de_train_path, args.de_dev_path])
+        assert any(path is not None for path in [args.en_train_path, args.fr_train_path, args.de_train_path])
         config = get_config(args.config_path)
+
         assert config.ucca.type in ["chart", "top-down", "global-chart"]
 
         with open(os.path.join(args.save_path, "config.json"), "w", encoding="utf-8") as f:
             json.dump(config, f, ensure_ascii=False, default=lambda o: o.__dict__, indent=4)
 
         print("save all files to %s" % (args.save_path))
+
         # read training , dev file
+        train_corpora = []
+        dev_corpora = []
         print("loading datasets and transforming to trees...")
-        en_train = Corpus(args.en_train_path, "en")
-        fr_train = Corpus(args.fr_train_path, "fr")
-        de_train = Corpus(args.de_train_path, "de")
-        print(en_train, "\n", fr_train, "\n", de_train)
+        if args.en_train_path and args.en_dev_path:
+            en_train = Corpus(args.en_train_path, "en")
+            train_corpora.append(en_train)
+            en_dev = Corpus(args.en_dev_path, "en")
+            dev_corpora.append(en_dev)
 
-        en_dev = Corpus(args.en_dev_path, "en")
-        fr_dev = Corpus(args.fr_dev_path, "fr")
-        de_dev = Corpus(args.de_dev_path, "de")
-        print(en_dev, "\n", fr_dev, "\n", de_dev)
+        if args.fr_train_path and args.fr_dev_path:
+            fr_train = Corpus(args.fr_train_path, "fr")
+            train_corpora.append(fr_train)
+            fr_dev = Corpus(args.fr_dev_path, "fr")
+            dev_corpora.append(fr_dev)
 
-        # init vocab
-        print("collecting words and labels in training dataset...")
-        vocab = Vocab(config.ucca.bert_vocab, (en_train, fr_train, de_train))
-        print(vocab)
-        en_train.filter(512, vocab)
-        fr_train.filter(512, vocab)
-        de_train.filter(512, vocab)
+        if args.de_train_path and args.de_dev_path:
+            de_train = Corpus(args.de_train_path, "de")
+            train_corpora.append(de_train)
+            de_dev = Corpus(args.de_dev_path, "de")
+            dev_corpora.append(de_dev)
 
-        vocab_path = os.path.join(args.save_path, "vocab.pt")
-        torch.save(vocab, vocab_path)
+        print("Train Corpora:")
+        for corpus in train_corpora:
+            print(f'{corpus}')
+        print("Dev Corpora:")
+        for corpus in dev_corpora:
+            print(f'{corpus}')
 
-        # init ucca_parser
-        print("initializing model...")
-        ucca_parser = UCCA_Parser(vocab, config.ucca)
+        if self.existing_parser_exists(args):
+            ucca_parser = self.load_parser(args)
+        else:
+            # init vocab
+            print("collecting words and labels in training dataset...")
+            vocab = Vocab(config.ucca.bert_vocab, train_corpora)
+            print(vocab)
+
+            for corpus in train_corpora:
+                corpus.filter(512, vocab)
+
+            vocab_path = os.path.join(args.save_path, "vocab.pt")
+            torch.save(vocab, vocab_path)
+
+            # init ucca_parser
+            print("initializing model...")
+            ucca_parser = UCCA_Parser(vocab, config.ucca)
+
         if torch.cuda.is_available():
             ucca_parser = ucca_parser.cuda()
 
         # prepare data
-        train_dataset = Data.ConcatDataset([en_train.generate_inputs(vocab, True), fr_train.generate_inputs(vocab, True), de_train.generate_inputs(vocab, True)])
-        dev_dataset = Data.ConcatDataset([en_dev.generate_inputs(vocab, False), fr_dev.generate_inputs(vocab, False), de_dev.generate_inputs(vocab, False)])
+        train_dataset = Data.ConcatDataset([corpus.generate_inputs(vocab, True) for corpus in train_corpora])
+        dev_dataset = Data.ConcatDataset([corpus.generate_inputs(vocab, False) for corpus in dev_corpora])
         print("preparing input data...")
         train_loader = Data.DataLoader(
             dataset=train_dataset,
@@ -115,10 +162,7 @@ class Train(object):
         del ucca_parser
         torch.cuda.empty_cache()
         print("reloading the best ucca_parser for testing...")
-        vocab_path = os.path.join(args.save_path, "vocab.pt")
-        state_path = os.path.join(args.save_path, "ucca_parser.pt")
-        config_path = os.path.join(args.save_path, "config.json")
-        ucca_parser = UCCA_Parser.load(vocab_path, config_path, state_path)
+        self.load_parser(args)
 
         if args.en_test_wiki_path:
             print("evaluating en wiki test data : %s" % (args.en_test_wiki_path))
@@ -153,7 +197,7 @@ class Train(object):
             )
             ucca_evaluator.compute_accuracy(test_loader)
             ucca_evaluator.remove_temp()
-        
+
         if args.fr_test_20k_path:
             print("evaluating fr 20K test data : %s" % (args.fr_test_20k_path))
             test = Corpus(args.fr_test_20k_path, "fr")
