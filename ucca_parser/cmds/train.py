@@ -76,7 +76,7 @@ class Train(object):
         dev_corpora = []
         print("loading datasets and transforming to trees...")
         if config.ucca.projections_path:
-            config.ucca.projections_dim = int(config.ucca.projections_dim)
+            config.ucca.projection_dim = int(config.ucca.projection_dim)
             print("using projections...")
         if config.ucca.en_train_path and config.ucca.en_dev_path:
             en_train = Corpus(config.ucca.en_train_path, "en", config.ucca.projections_path)
@@ -116,7 +116,7 @@ class Train(object):
 
             # init ucca_parser
             print("initializing model...")
-            ucca_parser = UCCA_Parser(vocab, config.ucca, use_projections=args.ucca.projections_path is not None)
+            ucca_parser = UCCA_Parser(vocab, config.ucca, use_projections=config.ucca.projections_path is not None)
 
         for corpus in train_corpora:
             corpus.filter(512, vocab)
@@ -144,7 +144,8 @@ class Train(object):
         optimizer = optim.Adam(ucca_parser.parameters(), lr=config.ucca.lr)
         ucca_evaluator = UCCA_Evaluator(
             parser=ucca_parser,
-            gold_dic=list(filter(lambda x: x is not None, [args.en_dev_path, args.fr_dev_path, args.de_dev_path])),
+            gold_dic=list(filter(lambda x: x is not None, [config.ucca.en_dev_path, config.ucca.fr_dev_path,
+                                                           config.ucca.de_dev_path])),
             save_path=args.save_path
         )
         if self.existing_parser_exists(args):
