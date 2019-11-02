@@ -21,15 +21,6 @@ from ucca_parser.utils import (
 class Train(object):
     def add_subparser(self, name, parser):
         subparser = parser.add_parser(name, help="Train a model.")
-        subparser.add_argument("--en_train_path", required=False, help="en train data dir")
-        subparser.add_argument("--fr_train_path", required=False, help="fr train data dir")
-        subparser.add_argument("--de_train_path", required=False, help="de train data dir")
-
-        subparser.add_argument("--en_dev_path", required=False, help="en dev data dir")
-        subparser.add_argument("--fr_dev_path", required=False, help="fr dev data dir")
-        subparser.add_argument("--de_dev_path", required=False, help="de dev data dir")
-
-        subparser.add_argument("--projections_path", required=False, help="projections data dir")
 
         subparser.add_argument("--save_path", required=True, help="dic to save all file")
         subparser.add_argument("--config_path", required=True, help="init config file")
@@ -62,14 +53,15 @@ class Train(object):
         return os.path.isfile(vocab_path) and os.path.isfile(state_path) and os.path.isfile(config_path)
 
     def __call__(self, args):
-        assert all(path is None for path in [args.en_train_path, args.en_dev_path]) or \
-               all(path is not None for path in [args.en_train_path, args.en_dev_path])
-        assert all(path is None for path in [args.fr_train_path, args.fr_dev_path]) or \
-               all(path is not None for path in [args.fr_train_path, args.fr_dev_path])
-        assert all(path is None for path in [args.de_train_path, args.de_dev_path]) or \
-               all(path is not None for path in [args.de_train_path, args.de_dev_path])
-        assert any(path is not None for path in [args.en_train_path, args.fr_train_path, args.de_train_path])
         config = get_config(args.config_path)
+
+        assert all(path is None for path in [config.en_train_path, config.en_dev_path]) or \
+               all(path is not None for path in [config.en_train_path, config.en_dev_path])
+        assert all(path is None for path in [config.fr_train_path, config.fr_dev_path]) or \
+               all(path is not None for path in [config.fr_train_path, config.fr_dev_path])
+        assert all(path is None for path in [config.de_train_path, config.de_dev_path]) or \
+               all(path is not None for path in [config.de_train_path, config.de_dev_path])
+        assert any(path is not None for path in [config.en_train_path, config.fr_train_path, config.de_train_path])
 
         assert config.ucca.type in ["chart", "top-down", "global-chart"]
 
@@ -82,24 +74,24 @@ class Train(object):
         train_corpora = []
         dev_corpora = []
         print("loading datasets and transforming to trees...")
-        if args.projections_path:
+        if config.projections_path:
             print("using projections...")
-        if args.en_train_path and args.en_dev_path:
-            en_train = Corpus(args.en_train_path, "en", args.projections_path)
+        if config.en_train_path and config.en_dev_path:
+            en_train = Corpus(config.en_train_path, "en", config.projections_path)
             train_corpora.append(en_train)
-            en_dev = Corpus(args.en_dev_path, "en", args.projections_path)
+            en_dev = Corpus(config.en_dev_path, "en", config.projections_path)
             dev_corpora.append(en_dev)
 
-        if args.fr_train_path and args.fr_dev_path:
-            fr_train = Corpus(args.fr_train_path, "fr", args.projections_path)
+        if config.fr_train_path and config.fr_dev_path:
+            fr_train = Corpus(config.fr_train_path, "fr", config.projections_path)
             train_corpora.append(fr_train)
-            fr_dev = Corpus(args.fr_dev_path, "fr", args.projections_path)
+            fr_dev = Corpus(config.fr_dev_path, "fr", config.projections_path)
             dev_corpora.append(fr_dev)
 
-        if args.de_train_path and args.de_dev_path:
-            de_train = Corpus(args.de_train_path, "de", args.projections_path)
+        if config.de_train_path and config.de_dev_path:
+            de_train = Corpus(config.de_train_path, "de", config.projections_path)
             train_corpora.append(de_train)
-            de_dev = Corpus(args.de_dev_path, "de", args.projections_path)
+            de_dev = Corpus(config.de_dev_path, "de", config.projections_path)
             dev_corpora.append(de_dev)
 
         print("Train Corpora:")
