@@ -34,6 +34,7 @@ def write_passages(dev_predicted, path):
 def get_dic_label_from_path(path):
     return os.path.basename(path)
 
+
 class UCCA_Evaluator(object):
     def __init__(
         self, parser, gold_dic=None, pred_dic=None, save_path=None
@@ -43,11 +44,10 @@ class UCCA_Evaluator(object):
         self.pred_dic = pred_dic
         self.save_path = save_path
 
-        self.temp_pred_dic = tempfile.TemporaryDirectory(prefix="ucca-eval-")
         self.best_F = 0
 
         self.dic_to_gold_dir_map = {}
-        for idx, dic in enumerate(gold_dic):
+        for idx, dic in enumerate(self.gold_dic):
             label = get_dic_label_from_path(dic)
             self.dic_to_gold_dir_map[label] = tempfile.TemporaryDirectory(prefix=f'ucca-eval-gold-{idx}-')
 
@@ -62,7 +62,7 @@ class UCCA_Evaluator(object):
         self.parser.eval()
         predicted = []
         for batch in loader:
-            subword_idxs, subword_masks, token_starts_masks, lang_idxs, word_idxs, pos_idxs, dep_idxs, ent_idxs, ent_iob_idxs, passages, trees, all_nodes, all_remote = batch
+            subword_idxs, subword_masks, token_starts_masks, lang_idxs, word_idxs, pos_idxs, dep_idxs, ent_idxs, ent_iob_idxs, passages, trees, all_nodes, all_remote, projections = batch
             subword_idxs = subword_idxs.cuda() if torch.cuda.is_available() else subword_idxs
             subword_masks = subword_masks.cuda() if torch.cuda.is_available() else subword_masks
             token_starts_masks = token_starts_masks.cuda() if torch.cuda.is_available() else token_starts_masks
@@ -74,7 +74,7 @@ class UCCA_Evaluator(object):
             ent_iob_idxs = ent_iob_idxs.cuda() if torch.cuda.is_available() else ent_iob_idxs
 
             pred_passages = self.parser.parse(subword_idxs, subword_masks, token_starts_masks, lang_idxs, word_idxs,
-                                              pos_idxs, dep_idxs, ent_idxs, ent_iob_idxs, passages)
+                                              pos_idxs, dep_idxs, ent_idxs, ent_iob_idxs, passages, projections)
             predicted.extend(pred_passages)
         return predicted
 
@@ -84,11 +84,9 @@ class UCCA_Evaluator(object):
         self.temp_pred_dic.cleanup()
 
     def compute_accuracy(self, loader):
-        passage_predicted = self.predict(loader)
-        write_passages(passage_predicted, self.temp_pred_dic.name)
-
         ucca_score = UccaScores()
-        pred_trees = read_passages(self.temp_pred_dic.name)
+
+        pred_trees = self.predict(loader)
 
         for key, item in self.dic_to_gold_dir_map.items():
             gold_trees = read_passages(item.name)
@@ -113,6 +111,6 @@ class UCCA_Evaluator(object):
             score.print()
             self.best_F = Fscore
             if self.pred_dic:
-                write_passages(passage_predicted, self.pred_dic)
+                write_passages(pred_trees, self.pred_dic)
 
         return Fscore

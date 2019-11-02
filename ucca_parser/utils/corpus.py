@@ -1,19 +1,35 @@
 import os
+from typing import List
 
 import torch
 
 from ucca.convert import to_text, xml2passage
+from ucca.core import Passage
 
+from ucca_parser.utils.instance_projection import Instance_Projection
 from .instance import Instance
 from .dataset import TensorDataSet
 
 
 class Corpus(object):
-    def __init__(self, dic_name=None, lang=None):
+    def __init__(self, dic_name=None, lang=None, projections_path=None):
         self.dic_name = dic_name
         self.passages = self.read_passages(dic_name)
         self.instances = [Instance(passage) for passage in self.passages]
         self.language = lang
+
+        if projections_path:
+            self.projections: List[Passage] = list(filter(lambda x: x.ID in [p.ID for p in self.passages],
+                                                          self.read_passages(projections_path)))
+            self.projection_instances = {p.ID: Instance_Projection(p) for p in self.projections}
+
+            for instance in self.instances:
+                p_id = instance.passage.ID
+                assert p_id in self.projection_instances
+                assert p_id == self.projection_instances[p_id].passage.ID
+        else:
+            self.projections = None
+            self.projection_instances = None
 
     @property
     def num_sentences(self):
@@ -43,7 +59,7 @@ class Corpus(object):
         subword_idxs, subword_masks, token_starts_masks = [], [], []
         lang_idxs, word_idxs = [], []
         pos_idxs, dep_idxs, ent_idxs, ent_iob_idxs = [], [], [], []
-        trees, all_nodes, all_remote = [], [], []
+        trees, all_nodes, all_remote, projections = [], [], [], []
         for instance in self.instances:
             subword_ids, mask, token_starts = vocab.subword_tokenize_to_ids(instance.words)
             subword_idxs.append(subword_ids)
@@ -83,6 +99,11 @@ class Corpus(object):
                 all_nodes.append([])
                 all_remote.append([])
 
+            if self.projections:
+                projections.append(self.projection_instances[instance.passage.ID])
+            else:
+                projections.append(None)
+
         return TensorDataSet(
             subword_idxs,
             subword_masks,
@@ -97,6 +118,7 @@ class Corpus(object):
             trees,
             all_nodes,
             all_remote,
+            projections
         )
 
     def filter(self, max_len, vocab):

@@ -18,6 +18,7 @@ class UccaScores():
     def get_metric(self, reset: bool = False):
         metrics = {}
         score_list = [item for sublist in self.scores.values() for item in sublist]
+        assert len(score_list) > 0
         agg_score = Scores.aggregate(score_list)
         labeled_average_f1 = agg_score.average_f1(LABELED)
         unlabeled_average_f1 = agg_score.average_f1(UNLABELED)

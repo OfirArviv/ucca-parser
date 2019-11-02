@@ -29,6 +29,8 @@ class Train(object):
         subparser.add_argument("--fr_dev_path", required=False, help="fr dev data dir")
         subparser.add_argument("--de_dev_path", required=False, help="de dev data dir")
 
+        subparser.add_argument("--projections_path", required=False, help="projections data dir")
+
         subparser.add_argument("--save_path", required=True, help="dic to save all file")
         subparser.add_argument("--config_path", required=True, help="init config file")
 
@@ -80,22 +82,24 @@ class Train(object):
         train_corpora = []
         dev_corpora = []
         print("loading datasets and transforming to trees...")
+        if args.projections_path:
+            print("using projections...")
         if args.en_train_path and args.en_dev_path:
-            en_train = Corpus(args.en_train_path, "en")
+            en_train = Corpus(args.en_train_path, "en", args.projections_path)
             train_corpora.append(en_train)
-            en_dev = Corpus(args.en_dev_path, "en")
+            en_dev = Corpus(args.en_dev_path, "en", args.projections_path)
             dev_corpora.append(en_dev)
 
         if args.fr_train_path and args.fr_dev_path:
-            fr_train = Corpus(args.fr_train_path, "fr")
+            fr_train = Corpus(args.fr_train_path, "fr", args.projections_path)
             train_corpora.append(fr_train)
-            fr_dev = Corpus(args.fr_dev_path, "fr")
+            fr_dev = Corpus(args.fr_dev_path, "fr", args.projections_path)
             dev_corpora.append(fr_dev)
 
         if args.de_train_path and args.de_dev_path:
-            de_train = Corpus(args.de_train_path, "de")
+            de_train = Corpus(args.de_train_path, "de", args.projections_path)
             train_corpora.append(de_train)
-            de_dev = Corpus(args.de_dev_path, "de")
+            de_dev = Corpus(args.de_dev_path, "de", args.projections_path)
             dev_corpora.append(de_dev)
 
         print("Train Corpora:")
@@ -118,7 +122,7 @@ class Train(object):
 
             # init ucca_parser
             print("initializing model...")
-            ucca_parser = UCCA_Parser(vocab, config.ucca)
+            ucca_parser = UCCA_Parser(vocab, config.ucca, use_projections=args.projections_path is not None)
 
         for corpus in train_corpora:
             corpus.filter(512, vocab)
@@ -146,7 +150,7 @@ class Train(object):
         optimizer = optim.Adam(ucca_parser.parameters(), lr=config.ucca.lr)
         ucca_evaluator = UCCA_Evaluator(
             parser=ucca_parser,
-            gold_dic=[args.en_dev_path, args.fr_dev_path, args.de_dev_path],
+            gold_dic=list(filter(lambda x: x is not None, [args.en_dev_path, args.fr_dev_path, args.de_dev_path])),
             save_path=args.save_path
         )
         if self.existing_parser_exists(args):

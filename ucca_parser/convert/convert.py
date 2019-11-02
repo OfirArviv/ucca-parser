@@ -142,7 +142,8 @@ def UCCA2tree(passage):
 
 def to_treebank(label, node):
     if len(node.outgoing) == 0:
-        return LeafTreebankNode(node.extra["pos"], node.text)
+        # changes 'node.extra["pos"]' to '"pos"' as projections don't have them and they are not used
+        return LeafTreebankNode("pos", node.text)
     
     children = []
     for child in sorted(node.children, key=lambda x: x.get_terminals()[0].position):
