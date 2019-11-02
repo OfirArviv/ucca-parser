@@ -55,13 +55,14 @@ class Train(object):
     def __call__(self, args):
         config = get_config(args.config_path)
 
-        assert all(path is None for path in [config.en_train_path, config.en_dev_path]) or \
-               all(path is not None for path in [config.en_train_path, config.en_dev_path])
-        assert all(path is None for path in [config.fr_train_path, config.fr_dev_path]) or \
-               all(path is not None for path in [config.fr_train_path, config.fr_dev_path])
-        assert all(path is None for path in [config.de_train_path, config.de_dev_path]) or \
-               all(path is not None for path in [config.de_train_path, config.de_dev_path])
-        assert any(path is not None for path in [config.en_train_path, config.fr_train_path, config.de_train_path])
+        assert all(path is None for path in [config.ucca.en_train_path, config.ucca.en_dev_path]) or \
+               all(path is not None for path in [config.ucca.en_train_path, config.ucca.en_dev_path])
+        assert all(path is None for path in [config.ucca.fr_train_path, config.ucca.fr_dev_path]) or \
+               all(path is not None for path in [config.ucca.fr_train_path, config.ucca.fr_dev_path])
+        assert all(path is None for path in [config.ucca.de_train_path, config.ucca.de_dev_path]) or \
+               all(path is not None for path in [config.ucca.de_train_path, config.ucca.de_dev_path])
+        assert any(path is not None for path in [config.ucca.en_train_path, config.ucca.fr_train_path,
+                                                 config.ucca.de_train_path])
 
         assert config.ucca.type in ["chart", "top-down", "global-chart"]
 
@@ -74,24 +75,25 @@ class Train(object):
         train_corpora = []
         dev_corpora = []
         print("loading datasets and transforming to trees...")
-        if config.projections_path:
+        if config.ucca.projections_path:
+            config.ucca.projections_dim = int(config.ucca.projections_dim)
             print("using projections...")
-        if config.en_train_path and config.en_dev_path:
-            en_train = Corpus(config.en_train_path, "en", config.projections_path)
+        if config.ucca.en_train_path and config.ucca.en_dev_path:
+            en_train = Corpus(config.ucca.en_train_path, "en", config.ucca.projections_path)
             train_corpora.append(en_train)
-            en_dev = Corpus(config.en_dev_path, "en", config.projections_path)
+            en_dev = Corpus(config.ucca.en_dev_path, "en", config.ucca.projections_path)
             dev_corpora.append(en_dev)
 
-        if config.fr_train_path and config.fr_dev_path:
-            fr_train = Corpus(config.fr_train_path, "fr", config.projections_path)
+        if config.ucca.fr_train_path and config.ucca.fr_dev_path:
+            fr_train = Corpus(config.ucca.fr_train_path, "fr", config.ucca.projections_path)
             train_corpora.append(fr_train)
-            fr_dev = Corpus(config.fr_dev_path, "fr", config.projections_path)
+            fr_dev = Corpus(config.ucca.fr_dev_path, "fr", config.ucca.projections_path)
             dev_corpora.append(fr_dev)
 
-        if config.de_train_path and config.de_dev_path:
-            de_train = Corpus(config.de_train_path, "de", config.projections_path)
+        if config.ucca.de_train_path and config.ucca.de_dev_path:
+            de_train = Corpus(config.ucca.de_train_path, "de", config.ucca.projections_path)
             train_corpora.append(de_train)
-            de_dev = Corpus(config.de_dev_path, "de", config.projections_path)
+            de_dev = Corpus(config.ucca.de_dev_path, "de", config.ucca.projections_path)
             dev_corpora.append(de_dev)
 
         print("Train Corpora:")
@@ -114,7 +116,7 @@ class Train(object):
 
             # init ucca_parser
             print("initializing model...")
-            ucca_parser = UCCA_Parser(vocab, config.ucca, use_projections=args.projections_path is not None)
+            ucca_parser = UCCA_Parser(vocab, config.ucca, use_projections=args.ucca.projections_path is not None)
 
         for corpus in train_corpora:
             corpus.filter(512, vocab)

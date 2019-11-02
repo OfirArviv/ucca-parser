@@ -33,14 +33,14 @@
 
         "projection_dim": 20,
 
-        "en_train_path": "",
-        "fr_train_path": "",
-        "de_train_path": "",
+        "en_train_path": null,
+        "fr_train_path": null,
+        "de_train_path": null,
 
-        "en_dev_path": "",
-        "fr_dev_path": "",
-        "de_dev_path": "",
+        "en_dev_path": null,
+        "fr_dev_path": null,
+        "de_dev_path": null,
 
-        "projections_path": ""
+        "projections_path": null
     }
 }
