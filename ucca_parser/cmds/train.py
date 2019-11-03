@@ -78,22 +78,30 @@ class Train(object):
         if config.ucca.projections_path:
             config.ucca.projection_dim = int(config.ucca.projection_dim)
             print("using projections...")
+        if config.ucca.use_partial_projections:
+            print("allowing the us of partial projections...")
         if config.ucca.en_train_path and config.ucca.en_dev_path:
-            en_train = Corpus(config.ucca.en_train_path, "en", config.ucca.projections_path)
+            en_train = Corpus(config.ucca.en_train_path, "en", config.ucca.projections_path,
+                              config.ucca.use_partial_projections)
             train_corpora.append(en_train)
-            en_dev = Corpus(config.ucca.en_dev_path, "en", config.ucca.projections_path)
+            en_dev = Corpus(config.ucca.en_dev_path, "en", config.ucca.projections_path,
+                            config.ucca.use_partial_projections)
             dev_corpora.append(en_dev)
 
         if config.ucca.fr_train_path and config.ucca.fr_dev_path:
-            fr_train = Corpus(config.ucca.fr_train_path, "fr", config.ucca.projections_path)
+            fr_train = Corpus(config.ucca.fr_train_path, "fr", config.ucca.projections_path,
+                              config.ucca.use_partial_projections)
             train_corpora.append(fr_train)
-            fr_dev = Corpus(config.ucca.fr_dev_path, "fr", config.ucca.projections_path)
+            fr_dev = Corpus(config.ucca.fr_dev_path, "fr", config.ucca.projections_path,
+                            config.ucca.use_partial_projections)
             dev_corpora.append(fr_dev)
 
         if config.ucca.de_train_path and config.ucca.de_dev_path:
-            de_train = Corpus(config.ucca.de_train_path, "de", config.ucca.projections_path)
+            de_train = Corpus(config.ucca.de_train_path, "de", config.ucca.projections_path,
+                              config.ucca.use_partial_projections)
             train_corpora.append(de_train)
-            de_dev = Corpus(config.ucca.de_dev_path, "de", config.ucca.projections_path)
+            de_dev = Corpus(config.ucca.de_dev_path, "de", config.ucca.projections_path,
+                            config.ucca.use_partial_projections)
             dev_corpora.append(de_dev)
 
         print("Train Corpora:")

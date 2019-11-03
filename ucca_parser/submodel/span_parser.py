@@ -160,6 +160,10 @@ class Topdown_Span_Parser(nn.Module):
             projection_labels = torch.FloatTensor(projection_labels).long()
             projection_labels = self.projection_embedding(projection_labels)
             span = torch.cat([projection_labels, span], dim=1)
+        elif self.projection_embedding is not None:
+            projection_dim = self.projection_embedding.embedding_dim
+            projection_labels = torch.zeros([span.shape[0],projection_dim])
+            span = torch.cat([projection_labels, span], dim=1)
 
         label_score = self.label_ffn(span)
         split_score = self.split_ffn(span).squeeze(-1)

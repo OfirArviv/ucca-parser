@@ -12,7 +12,7 @@ from .dataset import TensorDataSet
 
 
 class Corpus(object):
-    def __init__(self, dic_name=None, lang=None, projections_path=None):
+    def __init__(self, dic_name=None, lang=None, projections_path=None, use_partial_projections=False):
         self.dic_name = dic_name
         self.passages = self.read_passages(dic_name)
         self.instances = [Instance(passage) for passage in self.passages]
@@ -23,10 +23,11 @@ class Corpus(object):
                                                           self.read_passages(projections_path)))
             self.projection_instances = {p.ID: Instance_Projection(p) for p in self.projections}
 
-            for instance in self.instances:
-                p_id = instance.passage.ID
-                assert p_id in self.projection_instances, f'{p_id} not found in projections'
-                assert p_id == self.projection_instances[p_id].passage.ID
+            if not use_partial_projections:
+                for instance in self.instances:
+                    p_id = instance.passage.ID
+                    assert p_id in self.projection_instances, f'{p_id} not found in projections'
+                    assert p_id == self.projection_instances[p_id].passage.ID
         else:
             self.projections = None
             self.projection_instances = None

@@ -33,14 +33,15 @@
 
         "projection_dim": 20,
 
-        "en_train_path": null,
+        "en_train_path": "",
         "fr_train_path": "C:/Users/t-ofarvi/Desktop/shared_task_data/experiment/span_parser/UCCA_French-20K/train",
-        "de_train_path": null,
+        "de_train_path": "",
 
-        "en_dev_path": null,
+        "en_dev_path": "",
         "fr_dev_path": "C:/Users/t-ofarvi/Desktop/shared_task_data/experiment/span_parser/UCCA_French-20K/dev",
-        "de_dev_path": null,
+        "de_dev_path": "",
 
-        "projections_path": "C:/Users/t-ofarvi/Desktop/shared_task_data/experiment/output3"
+        "projections_path": "C:/Users/t-ofarvi/Desktop/shared_task_data/experiment/output3",
+        "use_partial_projections": false
     }
 }
