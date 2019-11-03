@@ -133,7 +133,7 @@ class Topdown_Span_Parser(nn.Module):
         self.split_ffn = Feedforward(lstm_dim+projection_dim, split_hidden_dim, 1, drop, norm)
 
         if projection_dim > 0:
-            # the + 1 is for labels in the projections dataset that were not obvserved in the training and validation
+            # the + 1 is for labels in the projections dataset that were not observed in the training and validation
             # datasets
             self.projection_embedding = nn.Embedding(len(self.vocab._parse_label) + 1, projection_dim)
             init.normal_(self.projection_embedding.weight)

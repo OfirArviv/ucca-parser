@@ -25,7 +25,7 @@ class Corpus(object):
 
             for instance in self.instances:
                 p_id = instance.passage.ID
-                assert p_id in self.projection_instances
+                assert p_id in self.projection_instances, f'{p_id} not found in projections'
                 assert p_id == self.projection_instances[p_id].passage.ID
         else:
             self.projections = None
