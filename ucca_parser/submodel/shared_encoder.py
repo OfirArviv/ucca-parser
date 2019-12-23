@@ -81,7 +81,7 @@ class LSTM_Encoder(nn.Module):
         ent_iob_emb = self.ent_iob_embedding(ent_iob_idxs)
 
         bert_outs = self.bert_encoder(subword_idxs, subword_masks, token_starts_masks)
-        emb = torch.cat((lang_emb, word_emb, pos_emb, dep_emb, ent_emb, ent_iob_emb, bert_outs), -1)
+        emb = torch.cat((word_emb, pos_emb, dep_emb, ent_emb, ent_iob_emb, bert_outs), -1)
         emb = self.emb_drop(emb)
 
         emb = emb[sorted_idx]
