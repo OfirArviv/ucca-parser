@@ -29,8 +29,10 @@ class LSTM_Encoder(nn.Module):
         emb_drop=0.5,
         lstm_drop=0.4,
         char_drop=0,
+        use_lang_embeddings=True,
     ):
         super(LSTM_Encoder, self).__init__()
+        self.use_lang_embeddings = use_lang_embeddings
         self.bert_encoder = Bert_Embedding("bert-base-multilingual-cased", bert_layer, bert_dim)
         self.vocab = vocab
         self.lang_embedding = nn.Embedding(vocab.num_lang, lang_dim)
@@ -73,7 +75,10 @@ class LSTM_Encoder(nn.Module):
         ent_iob_idxs = ent_iob_idxs[:, :max_len]
         mask = mask[:, :max_len]
 
-        lang_emb = self.lang_embedding(lang_idxs)
+        if self.use_lang_embeddings:
+            lang_emb = self.lang_embedding(lang_idxs)
+        else:
+            lang_emb = torch.Tensor()
         word_emb = self.word_embedding(word_idxs)
         pos_emb = self.pos_embedding(pos_idxs)
         dep_emb = self.dep_embedding(dep_idxs)

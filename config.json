@@ -41,7 +41,8 @@
         "fr_dev_path": "C:/Users/t-ofarvi/Desktop/shared_task_data/experiment/span_parser/UCCA_French-20K/dev",
         "de_dev_path": "",
 
-        "projections_path": "C:/Users/t-ofarvi/Desktop/shared_task_data/experiment/output3",
-        "use_partial_projections": false
+        "projections_path": null,
+        "use_partial_projections": false,
+        "use_lang_embeddings": false
     }
 }

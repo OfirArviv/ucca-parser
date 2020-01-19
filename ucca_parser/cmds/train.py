@@ -152,7 +152,7 @@ class Train(object):
         optimizer = optim.Adam(ucca_parser.parameters(), lr=config.ucca.lr)
         ucca_evaluator = UCCA_Evaluator(
             parser=ucca_parser,
-            gold_dic=list(filter(lambda x: x is not None, [config.ucca.en_dev_path, config.ucca.fr_dev_path,
+            gold_dic=list(filter(lambda x: x is not None and x is not "", [config.ucca.en_dev_path, config.ucca.fr_dev_path,
                                                            config.ucca.de_dev_path])),
             save_path=args.save_path
         )
