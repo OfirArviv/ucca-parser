@@ -33,6 +33,7 @@ class UCCA_Parser(torch.nn.Module):
             lstm_layer=args.lstm_layer,
             emb_drop=args.emb_drop,
             lstm_drop=args.lstm_drop,
+            use_lang_embeddings=args.use_lang_embeddings
         )
 
         if args.type == "chart":
